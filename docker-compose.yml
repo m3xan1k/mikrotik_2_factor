@@ -1,0 +1,76 @@
+version: '3'
+
+services:
+    web:
+        build: ./app
+        container_name: tik2fa_app
+        command: gunicorn app.wsgi:application --bind 0.0.0.0:8000
+        volumes:
+            - ./app/:/usr/src/app/
+            - static_volume:/usr/src/app/static
+        expose:
+            - 8000
+        env_file: 
+            - ./.env
+        environment: 
+            - DJANGO_ALLOWED_HOSTS=*
+        restart: unless-stopped
+        depends_on: 
+            - db
+            - redis
+    db:
+        image: postgres:12.0-alpine
+        container_name: tik2fa_db
+        volumes:
+            - postgres_data:/var/lib/postgresql/data/
+        environment: 
+            - POSTGRES_USER=hello
+            - POSTGRES_PASSWORD=hello
+            - POSTGRES_DB=hello
+    nginx:
+        build: ./nginx
+        container_name: tik2fa_nginx
+        volumes: 
+            - static_volume:/usr/src/app/static
+        ports:
+            - 80:80
+        depends_on:
+            - web
+    redis:
+        image: redis:alpine
+        container_name: tik2fa_redis
+    celery:
+        build: ./app
+        container_name: tik2fa_celery
+        command: celery -A app worker -l info
+        volumes:
+            - ./app/:/usr/src/app/
+        env_file: 
+            - ./.env
+        environment: 
+            - DJANGO_ALLOWED_HOSTS=*
+        depends_on:
+            - redis
+    celery-beat:
+        build: ./app
+        container_name: tik2fa_celery_beat
+        command: celery -A app beat -l info
+        volumes:
+            - ./app/:/usr/src/app/
+        env_file: 
+            - ./.env
+        environment: 
+            - DJANGO_ALLOWED_HOSTS=*
+        depends_on:
+            - redis
+    watcher:
+        build: ./app
+        container_name: tik2fa_watcher
+        command: python watcher.py
+        env_file: 
+            - ./.env
+        restart: unless-stopped
+
+volumes:
+    postgres_data:
+    static_volume:
