@@ -70,7 +70,7 @@ There are several hosts that communicate and interact together:
 
 ### TODO
 
--[] tests
+-[ ] tests
 
 
 ---
