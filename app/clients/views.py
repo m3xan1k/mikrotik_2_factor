@@ -22,6 +22,8 @@ class ConnectView(View):
         body_unicode = request.body.decode('utf-8')
         payload = json.loads(body_unicode)
 
+        if not payload['chat_id']:
+            return JsonResponse({'msg': 'chat_id required in request body'}, status=400)
         chat_id = int(payload['chat_id'])
 
         # check if client has too much unconfirmed connections to ban or not
@@ -35,13 +37,19 @@ class ConnectView(View):
                 return JsonResponse({'msg': 'client was not properly banned on router'})
 
             crud.save_disconnected_client(chat_id)
-            res = send_message(chat_id, Message.banned())
-            print(res.json(), res.url)
+            send_message(chat_id, Message.banned())
             return JsonResponse({'msg': 'client banned'})
 
         # if ok save client and send confirmation button to tg
         crud.save_connected_client(payload)
         response = send_confirm_button(chat_id, payload)
+
+        # wrong chat id may cause unsuccessfull response
+        if not response.status_code == 200:
+            crud.save_disconnected_client(chat_id)
+            return JsonResponse({'msg': 'client disconnected. maybe bad chat_id'}, status=400)
+
+        # if ok save btn message id finally
         crud.save_message_id(chat_id, response)
         return JsonResponse({'msg': 'client connected'})
 
@@ -59,7 +67,7 @@ class DisconnectView(View):
         # try to find and save client
         client = crud.save_disconnected_client(int(payload['chat_id']))
         if not client:
-            return JsonResponse(content={'msg': 'client not found'}, status=404)
+            return JsonResponse({'msg': 'client not found'}, status=404)
         delete_confirm_button(client.chat_id, client.last_confirm_message_id)
         return JsonResponse({'msg': 'client disconnected'})
 
@@ -79,13 +87,14 @@ class ConfirmView(View):
         # try to save client and check different cases of client state
         client, status = crud.save_confirmed_client(chat_id)
 
-        # clean button after all
-        delete_confirm_button(chat_id, client.last_confirm_message_id)
-
-        # if client not found or client not connected
+        # if client not found
         if status == 404:
             return JsonResponse({'msg': 'client not found'}, status=status)
 
+        # clean button after all
+        delete_confirm_button(chat_id, client.last_confirm_message_id)
+
+        # if client not connected
         if status == 422:
             return JsonResponse({'msg': 'client not connected'}, status=status)
 
@@ -125,6 +134,6 @@ class TimeCheckView(View):
                 delete_confirm_button(client.chat_id, client.last_confirm_message_id)
 
             # sql bulk update, much faster then change every instance in a loop
-            crud.bulk_update_clients(exceeded_clients, ['unconfirmed_connections_count', 'connected'])
+            crud.bulk_update_clients(exceeded_clients, ['connected'])
             return JsonResponse({'msg': f'{len(exceeded_clients)} clients disconnected'})
         return JsonResponse({'msg': 'No disconnected clients'})
