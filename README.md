@@ -20,12 +20,12 @@ python manage.py createsuperuser
 
 4. Prepare router(need to automate this step):
 
-3.1 Make named access-lists
-3.2 Make and firewall rules for this lists
-3.3 Place up/down scripts for ppp profile
-3.4 Make specific user for this application
-3.5 Other security preparations
-3.6 Create and fill VPN accounts
+- Make named access-lists
+- Make and firewall rules for this lists
+- Place up/down scripts for ppp profile
+- Make specific user for this application
+- Other security preparations
+- Create and fill VPN accounts
 
 
 ---
@@ -80,7 +80,7 @@ There are several processes/hosts that communicate and interact together:
 
 ### TODO
 
--[x] tests
+- [x] tests
 
 
 ---
