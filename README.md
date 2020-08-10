@@ -9,7 +9,16 @@
 docker-compose up -d
 ```
 
-3. Prepare router(need to automate this step):
+3. Apply migrations, create superuser to have access to django admin web interface, collect static(css/js)
+
+```
+docker exec -it tik2fa_app sh
+python manage.py migrate
+python manage.py collectstatic
+python manage.py createsuperuser
+```
+
+4. Prepare router(need to automate this step):
 
 3.1 Make named access-lists
 3.2 Make and firewall rules for this lists
@@ -25,12 +34,13 @@ docker-compose up -d
 ### How it works
 
 
-There are several hosts that communicate and interact together:
+There are several processes/hosts that communicate and interact together:
 
 - Client
 - Router
 - Django web API(hiddden behind NGINX + gunicorn) that does almost all logic
 - Telegram updates watcher — just triggers API when client confirmes connection in chat
+- Backgroud celery task — just triggers API to check for unconfirmed timeouts
 
 
 ---
@@ -70,7 +80,7 @@ There are several hosts that communicate and interact together:
 
 ### TODO
 
--[ ] tests
+-[x] tests
 
 
 ---
