@@ -28,8 +28,8 @@ class ConnectView(View):
 
         # check if client has too much unconfirmed connections to ban or not
         if crud.has_exceeded_connections(payload):
-            ban: bool = shell.ban_ip_address(payload)
-            reset: bool = shell.disconnect_client(payload)
+            ban: bool = shell.ban_ip_address(payload['source_ip'])
+            reset: bool = shell.disconnect_client(payload['source_ip'])
 
             # if client was not properly banned on router
             if not ban or not reset:
@@ -99,17 +99,16 @@ class ConfirmView(View):
             return JsonResponse({'msg': 'client not connected'}, status=status)
 
         # successfully saved client authorizes on router
-        ip_addresses = {'source_ip': client.source_ip, 'destination_ip': client.destination_ip}
-        router_response = shell.authorize_ip_address(ip_addresses)
+        router_response = shell.authorize_ip_address(client.source_ip)
 
         # for some reason router may not respond, so client will become unconfirmed and disconnected
         if not router_response:
             crud.save_disconnected_client(chat_id)
-            send_message(chat_id, Message.unavailable(ip_addresses))
+            send_message(chat_id, Message.unavailable(client.source_ip))
             return JsonResponse({'msg': 'router not available'}, status=status)
 
         # send success message if all good
-        send_message(chat_id, Message.authorized(ip_addresses))
+        send_message(chat_id, Message.authorized(client.source_ip))
 
         return JsonResponse({'msg': 'client confirmed'})
 
@@ -123,13 +122,9 @@ class TimeCheckView(View):
         # check if there are exceeded(unconfirmed timeout) clients
         if exceeded_clients := crud.get_time_exceeded_clients():
             for client in exceeded_clients:
-                ip_addresses = {
-                    'source_ip': client.source_ip,
-                    'destination_ip': client.destination_ip,
-                }
 
                 # disconnect them on router, change db state and delete button
-                shell.disconnect_client(ip_addresses)
+                shell.disconnect_client(client.source_ip)
                 client.connected = False
                 delete_confirm_button(client.chat_id, client.last_confirm_message_id)
 

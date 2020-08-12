@@ -6,16 +6,18 @@ from netmiko import ConnectHandler, NetmikoTimeoutException
 SSH_USERNAME = os.environ.get('SSH_USERNAME')
 SSH_PASSWORD = os.environ.get('SSH_PASSWORD')
 SSH_PORT = os.environ.get('SSH_PORT')
+SSH_HOST = os.environ.get('SSH_HOST')
 
 DENY_LIST = os.environ.get('DENY_LIST')
 PERMIT_LIST = os.environ.get('PERMIT_LIST')
 PERMANENT_BAN_LIST = os.environ.get('PERMANENT_BAN_LIST')
+BAN_TIMEOUT = os.environ.get('BAN_TIMEOUT', '00:30:00')
 
 
-def _configure_connection_settings(destination_ip: str) -> None:
+def _configure_connection_settings() -> None:
     router = {
         'device_type': 'mikrotik_routeros',
-        'host': destination_ip,
+        'host': SSH_HOST,
         'username': SSH_USERNAME,
         'password': SSH_PASSWORD,
         'port': SSH_PORT,
@@ -24,11 +26,8 @@ def _configure_connection_settings(destination_ip: str) -> None:
     return router
 
 
-def authorize_ip_address(ip_addresses: dict) -> bool:
-    source_ip = ip_addresses["source_ip"]
-    destination_ip = ip_addresses['destination_ip']
-
-    router = _configure_connection_settings(destination_ip)
+def authorize_ip_address(source_ip: str) -> bool:
+    router = _configure_connection_settings()
     try:
         ssh = ConnectHandler(**router)
     except NetmikoTimeoutException:
@@ -39,25 +38,33 @@ def authorize_ip_address(ip_addresses: dict) -> bool:
     return True
 
 
-def ban_ip_address(ip_addresses: dict) -> bool:
-    source_ip = ip_addresses["source_ip"]
-    destination_ip = ip_addresses['destination_ip']
-    router = _configure_connection_settings(destination_ip)
+def ban_ip_address(source_ip: str) -> bool:
+    router = _configure_connection_settings()
     try:
         ssh = ConnectHandler(**router)
     except NetmikoTimeoutException:
         return False
 
     ssh.send_command(f'ip firewall address-list remove [find address={source_ip} list={DENY_LIST}]')
-    ssh.send_command(f'ip firewall address-list add list={PERMANENT_BAN_LIST} address={source_ip}')
+    ssh.send_command(f'ip firewall address-list add list={PERMANENT_BAN_LIST} address={source_ip} timeout={BAN_TIMEOUT}')
     ssh.disconnect()
     return True
 
 
-def disconnect_client(ip_addresses: dict) -> bool:
-    source_ip = ip_addresses['source_ip']
-    destination_ip = ip_addresses['destination_ip']
-    router = _configure_connection_settings(destination_ip)
+def unban_ip_address(source_ip: str) -> bool:
+    router = _configure_connection_settings()
+    try:
+        ssh = ConnectHandler(**router)
+    except NetmikoTimeoutException:
+        return False
+    print(source_ip, PERMANENT_BAN_LIST)
+    ssh.send_command(f'[/ip firewall address-list remove [find address={source_ip} list={PERMANENT_BAN_LIST}]]')
+    ssh.disconnect()
+    return True
+
+
+def disconnect_client(source_ip: str) -> bool:
+    router = _configure_connection_settings()
     try:
         ssh = ConnectHandler(**router)
     except NetmikoTimeoutException:

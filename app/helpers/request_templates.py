@@ -17,12 +17,12 @@ else:
 
 class Message:
     @staticmethod
-    def authorized(ip_addresses: dict) -> str:
-        return f'Your ip address {ip_addresses["source_ip"]} authorized'
+    def authorized(source_ip: str) -> str:
+        return f'Your ip address {source_ip} authorized'
 
     @staticmethod
-    def unavailable(ip_addresses: dict) -> str:
-        return f'Your ip address {ip_addresses["source_ip"]} not authorized. \
+    def unavailable(source_ip: str) -> str:
+        return f'Your ip address {source_ip} not authorized. \
             Either you are disconnected or router is unavailable. Try again later.'
 
     @staticmethod

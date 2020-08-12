@@ -20,11 +20,14 @@ class TestViews(TestCase):
     CONFIRM_URL = reverse(ConfirmView.name)
     TIMECHECK_URL = reverse(TimeCheckView.name)
 
+    def setUp(self):
+        os.environ.setdefault('SSH_HOST', '0.0.0.0')
+
     def test_bad_payload(self):
         payload = {
             'chat_id': '',
             'source_ip': '1.1.1.1',
-            'destination_ip': '2.2.2.2',
+            'destination_ip': '255.255.255.0',
         }
         response: JsonResponse = self.client.post(
             self.CONNECT_URL, content_type='application/json', data=json.dumps(payload),
@@ -37,7 +40,7 @@ class TestViews(TestCase):
         payload = {
             'chat_id': '1',
             'source_ip': '1.1.1.1',
-            'destination_ip': '2.2.2.2',
+            'destination_ip': '255.255.255.0',
         }
         response: JsonResponse = self.client.post(
             self.CONNECT_URL, content_type='application/json', data=json.dumps(payload),
@@ -52,7 +55,7 @@ class TestViews(TestCase):
         client = Client.objects.create(
             chat_id=2,
             source_ip='2.2.2.2',
-            destination_ip='255.255.255.255',
+            destination_ip='255.255.255.0',
             unconfirmed_connections_count=(max_conn + 1),
             last_connection_time=timezone.now(),
         )
@@ -65,7 +68,7 @@ class TestViews(TestCase):
             self.CONNECT_URL, content_type='application/json', data=json.dumps(payload),
         )
         msg = json.loads(response.content.decode('utf-8')).get('msg')
-        self.assertEqual(msg, 'client was not properly banned on router')
+        self.assertEqual(msg, 'client banned')
 
     def test_disconnect_not_found(self):
         payload = {'chat_id': '999'}
@@ -78,7 +81,7 @@ class TestViews(TestCase):
         client = Client.objects.create(
             chat_id=3,
             source_ip='2.2.2.2',
-            destination_ip='255.255.255.255',
+            destination_ip='255.255.255.0',
             unconfirmed_connections_count=0,
             last_connection_time=timezone.now(),
             connected=True,
@@ -102,7 +105,7 @@ class TestViews(TestCase):
         client = Client.objects.create(
             chat_id=4,
             source_ip='2.2.2.2',
-            destination_ip='255.255.255.255',
+            destination_ip='255.255.255.0',
             unconfirmed_connections_count=0,
             last_connection_time=timezone.now(),
             connected=False,
@@ -117,7 +120,7 @@ class TestViews(TestCase):
         client = Client.objects.create(
             chat_id=5,
             source_ip='2.2.2.2',
-            destination_ip='255.255.255.255',
+            destination_ip='255.255.255.0',
             unconfirmed_connections_count=0,
             last_connection_time=timezone.now(),
             connected=True,
@@ -128,7 +131,7 @@ class TestViews(TestCase):
         )
         self.assertEqual(response.status_code, 200)
         msg = json.loads(response.content.decode('utf-8')).get('msg')
-        self.assertEqual(msg, 'router not available')
+        self.assertEqual(msg, 'client confirmed')
 
     def test_disconnect_clients(self):
         timeout = int(os.environ.get('UNCONFIRMED_TIMEOUT'))
@@ -136,7 +139,7 @@ class TestViews(TestCase):
         exceeded_client = Client.objects.create(
             chat_id=6,
             source_ip='2.2.2.2',
-            destination_ip='255.255.255.255',
+            destination_ip='255.255.255.0',
             unconfirmed_connections_count=0,
             last_connection_time=timezone.now() - time_border,
             connected=True,
@@ -145,7 +148,7 @@ class TestViews(TestCase):
         normal_client = Client.objects.create(
             chat_id=7,
             source_ip='2.2.2.2',
-            destination_ip='255.255.255.255',
+            destination_ip='255.255.255.0',
             unconfirmed_connections_count=0,
             last_connection_time=timezone.now(),
             connected=True,
