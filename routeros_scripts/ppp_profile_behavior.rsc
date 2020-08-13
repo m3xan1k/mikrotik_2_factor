@@ -15,7 +15,7 @@
     
     :local payload "{\"chat_id\": \"$chatId\", \"source_ip\": \"$sourceIp\", \"destination_ip\": \"$destinationIp\"}";
     
-    [/ip firewall address-list add list=$denyList address=$sourceIp comment="remote vpn user"];
+    [/ip firewall address-list add list=$denyList address=$sourceIp comment="vpn user"];
     
     [/tool fetch url=$endpointUrl http-header-field="content-type:application/json" http-method=post http-data=$payload];
     
@@ -37,7 +37,7 @@
     
     :local payload "{\"chat_id\": \"$chatId\", \"source_ip\": \"$sourceIp\", \"destination_ip\": \"$destinationIp\"}";
     
-    [/ip firewall address-list add list=$denyList address=$sourceIp comment="remote vpn user"];
+    [/ip firewall address-list add list=$denyList address=$sourceIp];
     
     [/tool fetch url=$endpointUrl http-header-field="content-type:application/json" http-method=post http-data=$payload];
     

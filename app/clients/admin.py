@@ -14,8 +14,8 @@ class ClientAdmin(admin.ModelAdmin):
 
     def remove_ban(self, request, queryset):
         queryset.update(unconfirmed_connections_count=0)
-        for client in queryset:
-            res = shell.unban_ip_address(client.source_ip)
+        ips_to_unban = [client.source_ip for client in queryset]
+        res = shell.unban_ip_address(ips_to_unban)
 
     def get_actions(self, request):
         actions = super().get_actions(request)

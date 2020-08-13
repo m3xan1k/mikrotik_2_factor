@@ -34,7 +34,7 @@ def authorize_ip_address(source_ip: str) -> bool:
         return False
 
     ssh.send_command(f'ip firewall address-list remove [find address={source_ip} list={DENY_LIST}]')
-    ssh.send_command(f'ip firewall address-list add list={PERMIT_LIST} address={source_ip}')
+    ssh.send_command(f'ip firewall address-list add list={PERMIT_LIST} address={source_ip} comment="vpn user"')
     return True
 
 
@@ -46,30 +46,38 @@ def ban_ip_address(source_ip: str) -> bool:
         return False
 
     ssh.send_command(f'ip firewall address-list remove [find address={source_ip} list={DENY_LIST}]')
-    ssh.send_command(f'ip firewall address-list add list={PERMANENT_BAN_LIST} address={source_ip} timeout={BAN_TIMEOUT}')
+    ssh.send_command(f'ip firewall address-list add list={PERMANENT_BAN_LIST} address={source_ip} timeout={BAN_TIMEOUT} comment="vpn user"')
     ssh.disconnect()
     return True
 
 
-def unban_ip_address(source_ip: str) -> bool:
+def unban_ip_address(source_ip: str or list) -> bool:
     router = _configure_connection_settings()
     try:
         ssh = ConnectHandler(**router)
     except NetmikoTimeoutException:
         return False
-    print(source_ip, PERMANENT_BAN_LIST)
-    ssh.send_command(f'[/ip firewall address-list remove [find address={source_ip} list={PERMANENT_BAN_LIST}]]')
+    if isinstance(source_ip, list):
+        for ip in source_ip:
+            ssh.send_command(f'[/ip firewall address-list remove [find address={ip} list={PERMANENT_BAN_LIST}]]')
+    else:
+        ssh.send_command(f'[/ip firewall address-list remove [find address={source_ip} list={PERMANENT_BAN_LIST}]]')
     ssh.disconnect()
     return True
 
 
-def disconnect_client(source_ip: str) -> bool:
+def disconnect_client(source_ip: str or list) -> bool:
     router = _configure_connection_settings()
     try:
         ssh = ConnectHandler(**router)
     except NetmikoTimeoutException:
         return False
-    cmd = f'[/interface l2tp-server remove [find where client-address=[/ppp active get [find where address={source_ip}] value-name=caller-id]]]'
-    ssh.send_command(cmd)
+    if isinstance(source_ip, list):
+        for ip in source_ip:
+            cmd = f'[/interface l2tp-server remove [find where client-address=[/ppp active get [find where address={ip}] value-name=caller-id]]]'
+            ssh.send_command(cmd)
+    else:
+        cmd = f'[/interface l2tp-server remove [find where client-address=[/ppp active get [find where address={source_ip}] value-name=caller-id]]]'
+        ssh.send_command(cmd)
     ssh.disconnect()
     return True

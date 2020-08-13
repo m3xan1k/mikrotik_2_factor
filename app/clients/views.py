@@ -121,13 +121,15 @@ class TimeCheckView(View):
 
         # check if there are exceeded(unconfirmed timeout) clients
         if exceeded_clients := crud.get_time_exceeded_clients():
+            ips_to_disconnect = []
             for client in exceeded_clients:
 
-                # disconnect them on router, change db state and delete button
-                shell.disconnect_client(client.source_ip)
                 client.connected = False
                 delete_confirm_button(client.chat_id, client.last_confirm_message_id)
+                ips_to_disconnect.append(client.source_ip)
 
+            # disconnect them on router, change db state and delete button
+            shell.disconnect_client(ips_to_disconnect)
             # sql bulk update, much faster then change every instance in a loop
             crud.bulk_update_clients(exceeded_clients, ['connected'])
             return JsonResponse({'msg': f'{len(exceeded_clients)} clients disconnected'})
