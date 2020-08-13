@@ -47,6 +47,7 @@ def ban_ip_address(source_ip: str) -> bool:
 
     ssh.send_command(f'ip firewall address-list remove [find address={source_ip} list={DENY_LIST}]')
     ssh.send_command(f'ip firewall address-list add list={PERMANENT_BAN_LIST} address={source_ip} timeout={BAN_TIMEOUT} comment="vpn user"')
+    ssh.send_command(f'[/interface l2tp-server remove [find where client-address=[/ppp active get [find where address={source_ip}] value-name=caller-id]]]')
     ssh.disconnect()
     return True
 

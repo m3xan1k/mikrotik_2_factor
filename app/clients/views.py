@@ -29,14 +29,12 @@ class ConnectView(View):
         # check if client has too much unconfirmed connections to ban or not
         if crud.has_exceeded_connections(payload):
             ban: bool = shell.ban_ip_address(payload['source_ip'])
-            reset: bool = shell.disconnect_client(payload['source_ip'])
 
             # if client was not properly banned on router
-            if not ban or not reset:
-                pass
+            if not ban:
                 return JsonResponse({'msg': 'client was not properly banned on router'})
 
-            crud.save_disconnected_client(chat_id)
+            crud.save_disconnected_client(chat_id, banned=True)
             send_message(chat_id, Message.banned())
             return JsonResponse({'msg': 'client banned'})
 

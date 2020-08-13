@@ -47,12 +47,14 @@ def save_confirmed_client(chat_id: int) -> tuple:
     return (client, 200)
 
 
-def save_disconnected_client(chat_id: int) -> Client or None:
+def save_disconnected_client(chat_id: int, banned=False) -> Client or None:
     client: Client = Client.objects.filter(chat_id=chat_id).first()
     if not client:
         return None
     client.confirmed = False
     client.connected = False
+    if banned:
+        client.unconfirmed_connections_count = 0
     client.save()
     return client
 
