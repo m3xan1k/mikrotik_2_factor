@@ -38,7 +38,7 @@ def authorize_ip_address(source_ip: str) -> bool:
     return True
 
 
-def ban_ip_address(source_ip: str) -> bool:
+def ban_ip_address(source_ip: str, caller_id: str) -> bool:
     router = _configure_connection_settings()
     try:
         ssh = ConnectHandler(**router)
@@ -46,39 +46,39 @@ def ban_ip_address(source_ip: str) -> bool:
         return False
 
     ssh.send_command(f'ip firewall address-list remove [find address={source_ip} list={DENY_LIST}]')
-    ssh.send_command(f'ip firewall address-list add list={PERMANENT_BAN_LIST} address={source_ip} timeout={BAN_TIMEOUT} comment="vpn user"')
-    ssh.send_command(f'[/interface l2tp-server remove [find where client-address=[/ppp active get [find where address={source_ip}] value-name=caller-id]]]')
+    ssh.send_command(f'ip firewall address-list add list={PERMANENT_BAN_LIST} address={caller_id} timeout={BAN_TIMEOUT} comment="vpn user"')
+    ssh.send_command(f'[/interface l2tp-server remove [find where client-address={caller_id}]]')
     ssh.disconnect()
     return True
 
 
-def unban_ip_address(source_ip: str or list) -> bool:
+def unban_ip_address(caller_id: str or list) -> bool:
     router = _configure_connection_settings()
     try:
         ssh = ConnectHandler(**router)
     except NetmikoTimeoutException:
         return False
-    if isinstance(source_ip, list):
-        for ip in source_ip:
+    if isinstance(caller_id, list):
+        for ip in caller_id:
             ssh.send_command(f'[/ip firewall address-list remove [find address={ip} list={PERMANENT_BAN_LIST}]]')
     else:
-        ssh.send_command(f'[/ip firewall address-list remove [find address={source_ip} list={PERMANENT_BAN_LIST}]]')
+        ssh.send_command(f'[/ip firewall address-list remove [find address={caller_id} list={PERMANENT_BAN_LIST}]]')
     ssh.disconnect()
     return True
 
 
-def disconnect_client(source_ip: str or list) -> bool:
+def disconnect_client(caller_id: str or list) -> bool:
     router = _configure_connection_settings()
     try:
         ssh = ConnectHandler(**router)
     except NetmikoTimeoutException:
         return False
-    if isinstance(source_ip, list):
-        for ip in source_ip:
-            cmd = f'[/interface l2tp-server remove [find where client-address=[/ppp active get [find where address={ip}] value-name=caller-id]]]'
+    if isinstance(caller_id, list):
+        for ip in caller_id:
+            cmd = f'[/interface l2tp-server remove [find where client-address={ip}]]'
             ssh.send_command(cmd)
     else:
-        cmd = f'[/interface l2tp-server remove [find where client-address=[/ppp active get [find where address={source_ip}] value-name=caller-id]]]'
+        cmd = f'[/interface l2tp-server remove [find where client-address={caller_id}]]'
         ssh.send_command(cmd)
     ssh.disconnect()
     return True

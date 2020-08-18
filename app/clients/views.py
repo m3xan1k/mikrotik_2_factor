@@ -28,7 +28,7 @@ class ConnectView(View):
 
         # check if client has too much unconfirmed connections to ban or not
         if crud.has_exceeded_connections(payload):
-            ban: bool = shell.ban_ip_address(payload['source_ip'])
+            ban: bool = shell.ban_ip_address(payload['source_ip'], payload['caller_id'])
 
             # if client was not properly banned on router
             if not ban:
@@ -124,7 +124,7 @@ class TimeCheckView(View):
 
                 client.connected = False
                 delete_confirm_button(client.chat_id, client.last_confirm_message_id)
-                ips_to_disconnect.append(client.source_ip)
+                ips_to_disconnect.append(client.caller_id)
 
             # disconnect them on router, change db state and delete button
             shell.disconnect_client(ips_to_disconnect)

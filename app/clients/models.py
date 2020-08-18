@@ -4,6 +4,7 @@ from django.db import models
 class Client(models.Model):
     chat_id = models.IntegerField(db_index=True)
     source_ip = models.TextField(blank=True, null=False)
+    caller_id = models.TextField(blank=True, null=False)
     destination_ip = models.TextField(blank=True, null=False)
     connected = models.BooleanField(default=False)
     confirmed = models.BooleanField(default=False)

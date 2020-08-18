@@ -9,12 +9,12 @@ class ClientAdmin(admin.ModelAdmin):
 
     actions = ['remove_ban']
 
-    list_display = ('chat_id', 'source_ip', 'destination_ip', 'connected',
+    list_display = ('chat_id', 'source_ip', 'destination_ip', 'caller_id', 'connected',
                     'confirmed', 'last_connection_time', 'unconfirmed_connections_count')
 
     def remove_ban(self, request, queryset):
         queryset.update(unconfirmed_connections_count=0)
-        ips_to_unban = [client.source_ip for client in queryset]
+        ips_to_unban = [client.caller_id for client in queryset]
         res = shell.unban_ip_address(ips_to_unban)
 
     def get_actions(self, request):

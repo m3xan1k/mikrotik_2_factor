@@ -27,6 +27,7 @@ class TestViews(TestCase):
         payload = {
             'chat_id': '',
             'source_ip': '1.1.1.1',
+            'caller_id': '2.2.2.2',
             'destination_ip': '255.255.255.0',
         }
         response: JsonResponse = self.client.post(
@@ -40,6 +41,7 @@ class TestViews(TestCase):
         payload = {
             'chat_id': '1',
             'source_ip': '1.1.1.1',
+            'caller_id': '2.2.2.2',
             'destination_ip': '255.255.255.0',
         }
         response: JsonResponse = self.client.post(
@@ -55,6 +57,7 @@ class TestViews(TestCase):
         client = Client.objects.create(
             chat_id=2,
             source_ip='2.2.2.2',
+            caller_id='2.2.2.2',
             destination_ip='255.255.255.0',
             unconfirmed_connections_count=(max_conn + 1),
             last_connection_time=timezone.now(),
@@ -81,6 +84,7 @@ class TestViews(TestCase):
         client = Client.objects.create(
             chat_id=3,
             source_ip='2.2.2.2',
+            caller_id='2.2.2.2',
             destination_ip='255.255.255.0',
             unconfirmed_connections_count=0,
             last_connection_time=timezone.now(),
@@ -105,6 +109,7 @@ class TestViews(TestCase):
         client = Client.objects.create(
             chat_id=4,
             source_ip='2.2.2.2',
+            caller_id='2.2.2.2',
             destination_ip='255.255.255.0',
             unconfirmed_connections_count=0,
             last_connection_time=timezone.now(),
@@ -120,6 +125,7 @@ class TestViews(TestCase):
         client = Client.objects.create(
             chat_id=5,
             source_ip='2.2.2.2',
+            caller_id='2.2.2.2',
             destination_ip='255.255.255.0',
             unconfirmed_connections_count=0,
             last_connection_time=timezone.now(),
@@ -139,6 +145,7 @@ class TestViews(TestCase):
         exceeded_client = Client.objects.create(
             chat_id=6,
             source_ip='2.2.2.2',
+            caller_id='2.2.2.2',
             destination_ip='255.255.255.0',
             unconfirmed_connections_count=0,
             last_connection_time=timezone.now() - time_border,
@@ -148,6 +155,7 @@ class TestViews(TestCase):
         normal_client = Client.objects.create(
             chat_id=7,
             source_ip='2.2.2.2',
+            caller_id='2.2.2.2',
             destination_ip='255.255.255.0',
             unconfirmed_connections_count=0,
             last_connection_time=timezone.now(),

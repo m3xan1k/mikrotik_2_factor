@@ -27,6 +27,7 @@ def save_connected_client(payload: dict) -> Client:
         client = Client()
     client.chat_id = chat_id
     client.source_ip = payload['source_ip']
+    client.caller_id = payload['caller_id']
     client.destination_ip = payload['destination_ip']
     client.connected = True
     client.last_connection_time = timezone.now()

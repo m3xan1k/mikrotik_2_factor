@@ -63,6 +63,7 @@ def send_confirm_button(chat_id: int, payload: dict) -> requests.Response:
     message_text = Message.confirm_connection()
     button_text = 'Confirm'
     del payload['chat_id']
+    del payload['caller_id']
     reply_markup = {'inline_keyboard': [[{'text': button_text, 'callback_data': str(payload)}]]}
     headers = {'content-type': 'application/json'}
     data = {'text': message_text, 'chat_id': chat_id, 'reply_markup': reply_markup}
