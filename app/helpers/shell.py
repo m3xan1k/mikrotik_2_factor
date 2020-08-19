@@ -12,6 +12,7 @@ DENY_LIST = os.environ.get('DENY_LIST')
 PERMIT_LIST = os.environ.get('PERMIT_LIST')
 PERMANENT_BAN_LIST = os.environ.get('PERMANENT_BAN_LIST')
 BAN_TIMEOUT = os.environ.get('BAN_TIMEOUT', '00:30:00')
+VPN_SERVER = os.environ.get('VPN_SERVER')
 
 
 def _configure_connection_settings() -> None:
@@ -47,7 +48,7 @@ def ban_ip_address(source_ip: str, caller_id: str) -> bool:
 
     ssh.send_command(f'ip firewall address-list remove [find address={source_ip} list={DENY_LIST}]')
     ssh.send_command(f'ip firewall address-list add list={PERMANENT_BAN_LIST} address={caller_id} timeout={BAN_TIMEOUT} comment="vpn user"')
-    ssh.send_command(f'[/interface l2tp-server remove [find where client-address={caller_id}]]')
+    ssh.send_command(f'[/interface {VPN_SERVER}-server remove [find where client-address={caller_id}]]')
     ssh.disconnect()
     return True
 
@@ -75,10 +76,10 @@ def disconnect_client(caller_id: str or list) -> bool:
         return False
     if isinstance(caller_id, list):
         for ip in caller_id:
-            cmd = f'[/interface l2tp-server remove [find where client-address={ip}]]'
+            cmd = f'[/interface {VPN_SERVER}-server remove [find where client-address={ip}]]'
             ssh.send_command(cmd)
     else:
-        cmd = f'[/interface l2tp-server remove [find where client-address={caller_id}]]'
+        cmd = f'[/interface {VPN_SERVER}-server remove [find where client-address={caller_id}]]'
         ssh.send_command(cmd)
     ssh.disconnect()
     return True

@@ -23,10 +23,12 @@ services:
         container_name: tik2fa_db
         volumes:
             - postgres_data:/var/lib/postgresql/data/
+        env_file: 
+            - ./.env
         environment: 
-            - POSTGRES_USER=hello
-            - POSTGRES_PASSWORD=hello
-            - POSTGRES_DB=hello
+            - POSTGRES_USER=${SQL_USER}
+            - POSTGRES_PASSWORD=${SQL_PASSWORD}
+            - POSTGRES_DB=${SQL_DATABASE}
     nginx:
         build: ./nginx
         container_name: tik2fa_nginx
