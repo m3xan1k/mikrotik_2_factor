@@ -2,6 +2,8 @@ import os
 
 from netmiko import ConnectHandler, NetmikoTimeoutException
 
+from app.celery import application
+
 
 SSH_USERNAME = os.environ.get('SSH_USERNAME')
 SSH_PASSWORD = os.environ.get('SSH_PASSWORD')
@@ -36,6 +38,7 @@ def authorize_ip_address(source_ip: str) -> bool:
 
     ssh.send_command(f'ip firewall address-list remove [find address={source_ip} list={DENY_LIST}]')
     ssh.send_command(f'ip firewall address-list add list={PERMIT_LIST} address={source_ip} comment="vpn user"')
+    ssh.disconnect()
     return True
 
 
@@ -68,6 +71,7 @@ def unban_ip_address(caller_id: str or list) -> bool:
     return True
 
 
+@application.task
 def disconnect_client(caller_id: str or list) -> bool:
     router = _configure_connection_settings()
     try:

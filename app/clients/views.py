@@ -35,7 +35,7 @@ class ConnectView(View):
                 return JsonResponse({'msg': 'client was not properly banned on router'})
 
             crud.save_disconnected_client(chat_id, banned=True)
-            send_message(chat_id, Message.banned())
+            send_message.delay(chat_id, Message.banned())
             return JsonResponse({'msg': 'client banned'})
 
         # if ok save client and send confirmation button to tg
@@ -66,7 +66,7 @@ class DisconnectView(View):
         client = crud.save_disconnected_client(int(payload['chat_id']))
         if not client:
             return JsonResponse({'msg': 'client not found'}, status=404)
-        delete_confirm_button(client.chat_id, client.last_confirm_message_id)
+        delete_confirm_button.delay(client.chat_id, client.last_confirm_message_id)
         return JsonResponse({'msg': 'client disconnected'})
 
 
@@ -90,7 +90,7 @@ class ConfirmView(View):
             return JsonResponse({'msg': 'client not found'}, status=status)
 
         # clean button after all
-        delete_confirm_button(chat_id, client.last_confirm_message_id)
+        delete_confirm_button.delay(chat_id, client.last_confirm_message_id)
 
         # if client not connected
         if status == 422:
@@ -102,11 +102,11 @@ class ConfirmView(View):
         # for some reason router may not respond, so client will become unconfirmed and disconnected
         if not router_response:
             crud.save_disconnected_client(chat_id)
-            send_message(chat_id, Message.unavailable(client.source_ip))
+            send_message.delay(chat_id, Message.unavailable(client.source_ip))
             return JsonResponse({'msg': 'router not available'}, status=status)
 
         # send success message if all good
-        send_message(chat_id, Message.authorized(client.source_ip))
+        send_message.delay(chat_id, Message.authorized(client.source_ip))
 
         return JsonResponse({'msg': 'client confirmed'})
 
@@ -123,11 +123,11 @@ class TimeCheckView(View):
             for client in exceeded_clients:
 
                 client.connected = False
-                delete_confirm_button(client.chat_id, client.last_confirm_message_id)
+                delete_confirm_button.delay(client.chat_id, client.last_confirm_message_id)
                 ips_to_disconnect.append(client.caller_id)
 
             # disconnect them on router, change db state and delete button
-            shell.disconnect_client(ips_to_disconnect)
+            shell.disconnect_client.delay(ips_to_disconnect)
             # sql bulk update, much faster then change every instance in a loop
             crud.bulk_update_clients(exceeded_clients, ['connected'])
             return JsonResponse({'msg': f'{len(exceeded_clients)} clients disconnected'})

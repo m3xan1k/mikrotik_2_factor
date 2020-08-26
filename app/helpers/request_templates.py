@@ -3,6 +3,8 @@ import os
 
 import requests
 
+from app.celery import application
+
 
 BASE_URL = f'https://api.telegram.org/bot{os.environ.get("TOKEN")}'
 
@@ -52,11 +54,12 @@ def get_updates(last_update_id: int) -> requests.Response:
     return response
 
 
+@application.task
 def send_message(chat_id: int, message_text: str) -> requests.Response:
     params = {'text': message_text, 'chat_id': chat_id}
     url = f'{BASE_URL}/sendmessage'
     response = requests.get(url=url, params=params, proxies=PROXIES)
-    return response
+    return response.json()
 
 
 def send_confirm_button(chat_id: int, payload: dict) -> requests.Response:
@@ -80,8 +83,9 @@ def send_confirm_request(chat_id: int) -> requests.Response:
     return response
 
 
+@application.task
 def delete_confirm_button(chat_id: int, message_id: int) -> requests.Response:
     params = {'chat_id': chat_id, 'message_id': message_id}
     url = f'{BASE_URL}/deletemessage'
     response = requests.get(url=url, params=params, proxies=PROXIES)
-    return response
+    return response.json()
