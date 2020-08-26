@@ -156,3 +156,4 @@ celerybeat.pid
 celerybeat-schedule
 Pipfile
 Pipfile.lock
+.devcontainer
