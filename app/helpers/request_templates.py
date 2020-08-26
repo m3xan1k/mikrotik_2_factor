@@ -43,6 +43,10 @@ class Message:
     def confirmation_time_exceeded() -> str:
         return 'Connection time without confirmation exceeded'
 
+    @staticmethod
+    def disconnected() -> str:
+        return 'Your session has expired'
+
 
 def get_updates(last_update_id: int) -> requests.Response:
     limit = 1

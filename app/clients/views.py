@@ -67,6 +67,7 @@ class DisconnectView(View):
         if not client:
             return JsonResponse({'msg': 'client not found'}, status=404)
         delete_confirm_button.delay(client.chat_id, client.last_confirm_message_id)
+        send_message.delay(client.chat_id, Message.disconnect())
         return JsonResponse({'msg': 'client disconnected'})
 
 
@@ -124,6 +125,7 @@ class TimeCheckView(View):
 
                 client.connected = False
                 delete_confirm_button.delay(client.chat_id, client.last_confirm_message_id)
+                send_message.delay(client.chat_id, Message.disconnect())
                 ips_to_disconnect.append(client.caller_id)
 
             # disconnect them on router, change db state and delete button
