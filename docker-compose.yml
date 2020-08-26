@@ -4,7 +4,7 @@ services:
     web:
         build: ./app
         container_name: tik2fa_app
-        command: gunicorn app.wsgi:application --bind 0.0.0.0:8000
+        command: gunicorn app.wsgi:application --bind 0.0.0.0:8000 --workers=2
         volumes:
             - ./app/:/usr/src/app/
             - static_volume:/usr/src/app/static
@@ -17,7 +17,7 @@ services:
         restart: unless-stopped
         depends_on: 
             - db
-            - redis
+            - celery-redis
     db:
         image: postgres:12.0-alpine
         container_name: tik2fa_db
@@ -38,13 +38,13 @@ services:
             - 80:80
         depends_on:
             - web
-    redis:
+    celery-redis:
         image: redis:alpine
         container_name: tik2fa_redis
     celery:
         build: ./app
         container_name: tik2fa_celery
-        command: celery -A app worker -l info
+        command: celery -A app worker -l info --concurrency=4
         volumes:
             - ./app/:/usr/src/app/
         env_file: 
@@ -52,7 +52,8 @@ services:
         environment: 
             - DJANGO_ALLOWED_HOSTS=*
         depends_on:
-            - redis
+            - web
+            - celery-redis
     celery-beat:
         build: ./app
         container_name: tik2fa_celery_beat
@@ -64,7 +65,8 @@ services:
         environment: 
             - DJANGO_ALLOWED_HOSTS=*
         depends_on:
-            - redis
+            - web
+            - celery-redis
     watcher:
         build: ./app
         container_name: tik2fa_watcher

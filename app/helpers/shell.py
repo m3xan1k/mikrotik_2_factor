@@ -2,7 +2,7 @@ import os
 
 from netmiko import ConnectHandler, NetmikoTimeoutException
 
-from app.celery import application
+from celery import shared_task
 
 
 SSH_USERNAME = os.environ.get('SSH_USERNAME')
@@ -71,7 +71,7 @@ def unban_ip_address(caller_id: str or list) -> bool:
     return True
 
 
-@application.task
+@shared_task
 def disconnect_client(caller_id: str or list) -> bool:
     router = _configure_connection_settings()
     try:

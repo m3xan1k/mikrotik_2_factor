@@ -67,7 +67,7 @@ class DisconnectView(View):
         if not client:
             return JsonResponse({'msg': 'client not found'}, status=404)
         delete_confirm_button.delay(client.chat_id, client.last_confirm_message_id)
-        send_message.delay(client.chat_id, Message.disconnect())
+        send_message.delay(client.chat_id, Message.disconnected())
         return JsonResponse({'msg': 'client disconnected'})
 
 
@@ -123,14 +123,13 @@ class TimeCheckView(View):
             ips_to_disconnect = []
             for client in exceeded_clients:
 
-                client.connected = False
-                delete_confirm_button.delay(client.chat_id, client.last_confirm_message_id)
-                send_message.delay(client.chat_id, Message.disconnect())
+                # client.connected = False
+                # delete_confirm_button.delay(client.chat_id, client.last_confirm_message_id)
                 ips_to_disconnect.append(client.caller_id)
 
             # disconnect them on router, change db state and delete button
             shell.disconnect_client.delay(ips_to_disconnect)
             # sql bulk update, much faster then change every instance in a loop
-            crud.bulk_update_clients(exceeded_clients, ['connected'])
+            # crud.bulk_update_clients(exceeded_clients, ['connected'])
             return JsonResponse({'msg': f'{len(exceeded_clients)} clients disconnected'})
         return JsonResponse({'msg': 'No disconnected clients'})

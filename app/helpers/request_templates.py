@@ -3,7 +3,7 @@ import os
 
 import requests
 
-from app.celery import application
+from celery import shared_task
 
 
 BASE_URL = f'https://api.telegram.org/bot{os.environ.get("TOKEN")}'
@@ -58,7 +58,7 @@ def get_updates(last_update_id: int) -> requests.Response:
     return response
 
 
-@application.task
+@shared_task
 def send_message(chat_id: int, message_text: str) -> requests.Response:
     params = {'text': message_text, 'chat_id': chat_id}
     url = f'{BASE_URL}/sendmessage'
@@ -87,7 +87,7 @@ def send_confirm_request(chat_id: int) -> requests.Response:
     return response
 
 
-@application.task
+@shared_task
 def delete_confirm_button(chat_id: int, message_id: int) -> requests.Response:
     params = {'chat_id': chat_id, 'message_id': message_id}
     url = f'{BASE_URL}/deletemessage'
