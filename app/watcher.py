@@ -36,11 +36,13 @@ class Watcher:
         # endless loop to watch chat updates
         while True:
             response = get_updates(last_update_id)
+            if not response:
+                continue
 
             # this may happen when token not provided
             if not response.status_code == 200:
                 # TODO: logging or notification
-                pass
+                continue
 
             _json = response.json()
 

@@ -48,13 +48,16 @@ class Message:
         return 'Your session has expired'
 
 
-def get_updates(last_update_id: int) -> requests.Response:
+def get_updates(last_update_id: int) -> requests.Response or None:
     limit = 1
     offset = last_update_id + 1
     timeout = 100
     params = {'limit': limit, 'offset': offset, 'timeout': timeout}
     url = f'{BASE_URL}/getupdates'
-    response = requests.get(url=url, params=params, proxies=PROXIES)
+    try:
+        response = requests.get(url=url, params=params, proxies=PROXIES)
+    except requests.ConnectionError:
+        return None
     return response
 
 
