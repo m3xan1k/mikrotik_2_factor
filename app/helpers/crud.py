@@ -25,6 +25,7 @@ def save_connected_client(payload: dict) -> Client:
     client: Client or None = Client.objects.filter(chat_id=chat_id).first()
     if not client:
         client = Client()
+    client.name = payload['name']
     client.chat_id = chat_id
     client.source_ip = payload['source_ip']
     client.caller_id = payload['caller_id']

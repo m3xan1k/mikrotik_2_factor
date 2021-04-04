@@ -9,7 +9,7 @@ class ClientAdmin(admin.ModelAdmin):
 
     actions = ['remove_ban']
 
-    list_display = ('chat_id', 'source_ip', 'destination_ip', 'caller_id', 'connected',
+    list_display = ('name', 'chat_id', 'source_ip', 'destination_ip', 'caller_id', 'connected',
                     'confirmed', 'last_connection_time', 'unconfirmed_connections_count')
 
     def remove_ban(self, request, queryset):

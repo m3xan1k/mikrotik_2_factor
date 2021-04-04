@@ -72,9 +72,12 @@ def send_message(chat_id: int, message_text: str) -> requests.Response:
 def send_confirm_button(chat_id: int, payload: dict) -> requests.Response:
     message_text = Message.confirm_connection()
     button_text = 'Confirm'
-    del payload['chat_id']
-    del payload['caller_id']
-    reply_markup = {'inline_keyboard': [[{'text': button_text, 'callback_data': str(payload)}]]}
+    tg_data_keys = ('source_ip', 'destination_ip')
+    truncated_payload = {key: value for key, value
+                         in payload.items()
+                         if key in tg_data_keys}
+    reply_markup = {'inline_keyboard':
+                    [[{'text': button_text, 'callback_data': str(truncated_payload)}]]}
     headers = {'content-type': 'application/json'}
     data = {'text': message_text, 'chat_id': chat_id, 'reply_markup': reply_markup}
     url = f'{BASE_URL}/sendmessage'

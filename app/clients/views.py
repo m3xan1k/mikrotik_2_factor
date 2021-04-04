@@ -45,7 +45,7 @@ class ConnectView(View):
         # wrong chat id may cause unsuccessfull response
         if not response.status_code == 200:
             crud.save_disconnected_client(chat_id)
-            return JsonResponse({'msg': 'client disconnected. maybe bad chat_id'}, status=400)
+            return JsonResponse({'msg': 'client disconnected. telegram request not ok'}, status=400)
 
         # if ok save btn message id finally
         crud.save_message_id(chat_id, response)
