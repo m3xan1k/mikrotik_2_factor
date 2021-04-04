@@ -2,6 +2,7 @@
 # on up
 
 {
+    :local name ($"user");
 	:local sourceIp ($"remote-address");
     :local destinationIp ($"local-address");
     :local denyList "sandboxed";
@@ -12,9 +13,9 @@
     :log info $denyList;
     
     :local chatId [/ppp secret get [find name=$user] comment];
-    :local endpointUrl "http://192.168.90.6/clients/connect/"
+    :local endpointUrl "http://192.168.88.254/clients/connect/"
     
-    :local payload "{\"chat_id\": \"$chatId\", \"source_ip\": \"$sourceIp\", \"destination_ip\": \"$destinationIp\", \"caller_id\": \"$callerId\"}";
+    :local payload "{\"name\": \"$name\", \"chat_id\": \"$chatId\", \"source_ip\": \"$sourceIp\", \"destination_ip\": \"$destinationIp\", \"caller_id\": \"$callerId\"}";
     
     [/ip firewall address-list add list=$denyList address=$sourceIp comment="vpn user"];
     
@@ -31,7 +32,7 @@
     :local denyList "sandboxed";
     :local permitList "allowed";
     :local chatId [/ppp secret get [find name=$user] comment];
-    :local endpointUrl "http://192.168.90.6/clients/disconnect/"
+    :local endpointUrl "http://192.168.88.254/clients/disconnect/"
     
     :local payload "{\"chat_id\": \"$chatId\", \"source_ip\": \"$sourceIp\", \"destination_ip\": \"$destinationIp\", \"caller_id\": \"$callerId\"}";
     
