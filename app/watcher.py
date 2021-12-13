@@ -14,7 +14,9 @@ class Watcher:
             message = response['result'][0]['callback_query']['message']
             has_callback_data = True
         except KeyError:
-            message = response['result'][0]['message']
+            message = response['result'][0].get('message')
+        if not message:
+            return None
         chat_id = message['chat']['id']
         update_id = response['result'][0]['update_id']
         if has_callback_data:
@@ -48,7 +50,9 @@ class Watcher:
 
             if _json.get('ok') is True and _json['result']:
                 parsed_response: dict = watcher.parse_response(_json)
-                last_update_id = parsed_response['update_id']
+                last_update_id = _json['result'][0]['update_id']
+                if not parsed_response:
+                    continue
                 chat_id = int(parsed_response['chat_id'])
 
                 # this may happen when user sends text message and not clicking button
