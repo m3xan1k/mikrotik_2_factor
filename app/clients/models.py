@@ -3,7 +3,7 @@ from django.db import models
 
 class Client(models.Model):
     name = models.TextField(blank=True, null=False)
-    chat_id = models.IntegerField(db_index=True)
+    chat_id = models.BigIntegerField(db_index=True)
     source_ip = models.TextField(blank=True, null=False)
     caller_id = models.TextField(blank=True, null=False)
     destination_ip = models.TextField(blank=True, null=False)
